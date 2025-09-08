@@ -3,6 +3,7 @@ const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 const axios = require('axios');
+const { GoogleAuth } = require('google-auth-library');
 require('dotenv').config();
 
 const app = express();
@@ -20,10 +21,35 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-// API Keys - YOUR GOOGLE VISION API KEY ADDED HERE
+// API Keys
 const CLARIFAI_API_KEY = 'a98fefbd39c7432b9a6b59b4cd68c1a4';
-const GOOGLE_VISION_API_KEY = 'AIzaSyB0UysNkk35gH3ijJCgh-89ETk-30wBMZ0'; // YOUR KEY
 const USDA_API_KEY = 'ArnraqbFs53M8MEMU0jmS6dM5XgGW2fJtPNeYRic';
+
+// Service Account Credentials (Replace with your actual service account JSON)
+const serviceAccountCredentials = {
+  "type": "service_account",
+  "project_id": "numeric-abbey-356810",
+  "private_key_id": "704a83a1dcb237c12089e0866404489a57512258",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDBxcLw02uS9i0W\nbflrjZFN4I/z6jpZvWZG6vPem07UfKubQKiQNyhL6fFxfiGbsGiN1BTeWc1FPqSh\nug2eoxMUAD+P0Dqia2ZRLCrOypROekqdlGw9J/dLM8uqwD8QZX/t8laOUzMAeeyd\nt2e7jknB1L5jrp60xzlp+JkbNwxZQBe+GAlBVRVXfw3ozsY95CHtAO7j8oDSL8Xn\n1SiRvmzqCRmVuAdZXNENVLVLeO8uEtxIkSb856N/O1lah5GYDFPgtUpobprNVZ0y\nK9aCXje1j1ApcMmbFFazVpFabMqP+IDWB1fwGMP6nYCRZrZ2xxQtB2kcg493u8x4\nh1qUXrjtAgMBAAECggEAAjAdd2KrwEkPUUWEn3ZFwb9bYMGwTvsYgIx+nHDcfwG5\nXlNok9hLmC/YDhQChSOEyrUuVyRkcPe4HCtho/zrZjpqfVE4mETmLtx0z0jyS8CN\nvyHB5x7gZ/T5w7/P9ntu6lzmJU1DMiouRcmgXjnJE2s3iyCZoijtuQiZkfkZJpjR\notb3FPYBdlm3AQp3aqs49DG6QuobGpRFyxXVfNAe2efwjQDAmypo8WrNygV5zqHJ\nS7R2DSLZgdAl0nxdBoeNH1DzSzwdz8Vyl/JfaMavQMZDm34UhGcfG+Q/2C84h+31\nCn4aW++NLqrYSvWJkLUZGRUXBJQb2AHDZsl+7WHYAQKBgQDpKpAWQwOnZ7hVlmBn\nbErHP4tRgqz45rmLB324sWqDH3m8rM7C4QEvDyw3cJl+1P8GpB1LZMIKhUNn/VTd\n4y7GjLysX2ZTSd4fULp3KDbckV0DVTobwMWG3edAGFN0+15WCg0fRslibLv4Ramc\n+vx4C828wUaakXlYJOjRdtxubQKBgQDUv5qoS28IzBUgiUYVFeAOxXCdKGjPo7iF\n0qH2kkeTS6uSjSFyKdKZv/m3sDrT8W8wdMvP+LM2f5+BwBMLRJRU/BNj2jAMDLe2\nIiV8tMJUaNxfmCCJA/JEabi/z5F52lB9qxARNcuI6pXItagpT/kIscQEV2OOdZ39\nIX4dkXrkgQKBgBvkm5gOLEG6hrK2apH0wn1TfLcjis27zDZ1jvSpRLSq70VC5vkp\nMZsPlZqMPdCOanPA7kA2rX/UsVufUqe4pb/a1jdIslUEYS4d2jCm/ukj+pyLdYgc\nZ4Taxu9D+bfk2kQwr6EuNqkvmMz6iG/fFpTF1Lbf6DJVdM62m6NzNKuBAoGBAJH+\nLjZhFX/29GSQbxxXF5trV/0w1sPueNi0k1puRVnJ6qI14QbDtna1q7qm36fDnWam\nL5q28txqNd5HHYp09ElhdjjmaGRMceE1i34JWPWtw9SBw4niwGS8HADcgtsYunWS\nZwM4ZES/nivOpOg8rguOWZIVGgePpOwpCK9nvuqBAoGBAOE+k7PB7LbDau+c0pAw\nHvSdNZpe2esS7dskgI/pSNzrOg+rrAz40Z4gqQS8L6Rcf7c21gipmUcW06YA2C8l\n1aWL2ki4MZvLcY1IG5GtF9G3KAlcZezi14TVKK4i0lcHiOQNSMQoRK90JjKwS6a/\ntTXt08AoLXYWzJum0fGsfJLe\n-----END PRIVATE KEY-----\n",
+  "client_email": "food-vision-api@numeric-abbey-356810.iam.gserviceaccount.com",
+  "client_id": "117702324516935378556",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/food-vision-api%40numeric-abbey-356810.iam.gserviceaccount.com"
+};
+
+// Initialize Google Auth with Service Account
+let auth;
+try {
+  auth = new GoogleAuth({
+    credentials: serviceAccountCredentials,
+    scopes: ['https://www.googleapis.com/auth/cloud-vision']
+  });
+  console.log('Google Vision Service Account initialized successfully');
+} catch (error) {
+  console.error('Google Vision Service Account initialization failed:', error);
+}
 
 // Initialize Clarifai
 let clarifaiApp;
@@ -62,7 +88,7 @@ app.post('/api/analyze', upload.single('image'), async (req, res) => {
       apiUsed = 'Google Vision';
       
       try {
-        // Try Google Vision second (Tier 2) - USING YOUR API KEY
+        // Try Google Vision second (Tier 2) - USING SERVICE ACCOUNT
         result = await analyzeWithGoogleVision(imageBase64);
       } catch (visionError) {
         console.log('Google Vision failed, using fallback:', visionError);
@@ -171,46 +197,18 @@ app.post('/api/analyze-text', async (req, res) => {
   }
 });
 
-// Clarifai Analysis Function
-async function analyzeWithClarifai(imageBase64) {
-  try {
-    const response = await clarifaiApp.models.predict(
-      Clarifai.FOOD_MODEL,
-      { base64: imageBase64 }
-    );
-
-    const concepts = response.outputs[0].data.concepts;
-    const foodItems = concepts.slice(0, 5).map(item => ({
-      name: item.name,
-      confidence: item.value
-    }));
-
-    const primaryFood = foodItems[0] || { name: 'Food', confidence: 0.7 };
-    
-    // Try to get detailed nutrition from USDA
-    let nutritionData;
-    try {
-      nutritionData = await analyzeWithUSDA(primaryFood.name);
-    } catch (usdaError) {
-      console.log('USDA failed, using generated data:', usdaError);
-      nutritionData = generateNutritionData(primaryFood.name);
-    }
-    
-    return {
-      foodName: primaryFood.name,
-      confidence: primaryFood.confidence,
-      alternatives: foodItems.slice(1),
-      nutrition: nutritionData
-    };
-  } catch (error) {
-    console.error('Clarifai API error:', error);
-    throw new Error('Clarifai analysis failed');
-  }
-}
-
-// Google Vision Analysis Function - USING YOUR API KEY
+// Google Vision Analysis Function - USING SERVICE ACCOUNT
 async function analyzeWithGoogleVision(imageBase64) {
   try {
+    if (!auth) {
+      throw new Error('Google Auth not initialized');
+    }
+
+    const client = await auth.getClient();
+    const projectId = await auth.getProjectId();
+    
+    const url = `https://vision.googleapis.com/v1/images:annotate`;
+    
     const requestData = {
       requests: [
         {
@@ -227,16 +225,11 @@ async function analyzeWithGoogleVision(imageBase64) {
       ]
     };
 
-    const response = await axios.post(
-      `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`,
-      requestData,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      }
-    );
+    const response = await client.request({
+      url: url,
+      method: 'POST',
+      data: requestData
+    });
 
     // Check if response has data
     if (!response.data || !response.data.responses) {
@@ -283,6 +276,43 @@ async function analyzeWithGoogleVision(imageBase64) {
       alternatives: [],
       nutrition: generateNutritionData(randomFood)
     };
+  }
+}
+
+// Clarifai Analysis Function
+async function analyzeWithClarifai(imageBase64) {
+  try {
+    const response = await clarifaiApp.models.predict(
+      Clarifai.FOOD_MODEL,
+      { base64: imageBase64 }
+    );
+
+    const concepts = response.outputs[0].data.concepts;
+    const foodItems = concepts.slice(0, 5).map(item => ({
+      name: item.name,
+      confidence: item.value
+    }));
+
+    const primaryFood = foodItems[0] || { name: 'Food', confidence: 0.7 };
+    
+    // Try to get detailed nutrition from USDA
+    let nutritionData;
+    try {
+      nutritionData = await analyzeWithUSDA(primaryFood.name);
+    } catch (usdaError) {
+      console.log('USDA failed, using generated data:', usdaError);
+      nutritionData = generateNutritionData(primaryFood.name);
+    }
+    
+    return {
+      foodName: primaryFood.name,
+      confidence: primaryFood.confidence,
+      alternatives: foodItems.slice(1),
+      nutrition: nutritionData
+    };
+  } catch (error) {
+    console.error('Clarifai API error:', error);
+    throw new Error('Clarifai analysis failed');
   }
 }
 
@@ -366,7 +396,7 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log('APIs configured:');
   console.log('- Clarifai: Ready');
-  console.log('- Google Vision: Ready (Using your API key)');
+  console.log('- Google Vision: Ready (Using Service Account)');
   console.log('- USDA: Ready');
   console.log('Text analysis endpoint: POST /api/analyze-text');
 });
